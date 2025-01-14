@@ -12,7 +12,7 @@ resource "aws_vpc" "eks_vpc" {
   enable_dns_hostnames = true
 
   tags = {
-    "Name" = "eks-vpc"
+    "Name"                                        = "eks-vpc"
   }
 }
 
@@ -24,7 +24,8 @@ resource "aws_subnet" "public_subnet" {
   map_public_ip_on_launch = true
 
   tags = {
-    "Name" = "public-subnet-${count.index}"
+    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
+    "kubernetes.io/role/elb"                      = "1"
   }
 }
 
@@ -33,37 +34,27 @@ resource "aws_subnet" "private_subnet" {
   vpc_id                  = aws_vpc.eks_vpc.id
   cidr_block              = local.private_subnets[count.index]
   availability_zone       = local.azs[count.index]
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   tags = {
-    "Name" = "private-subnet-${count.index}"
+    "kubernetes.io/role/internal-elb"             = "1"
+    "kubernetes.io/cluster/${local.cluster_name}" = "owned"
+    "karpenter.sh/discovery"                      = local.cluster_name
   }
 }
 
 resource "aws_internet_gateway" "eks_igw" {
   vpc_id = aws_vpc.eks_vpc.id
-
-  tags = {
-    "Name" = "eks-igw"
-  }
 }
 
 resource "aws_eip" "nat_eip" {
   count = length(local.private_subnets)
   vpc   = true
-
-  tags = {
-    "Name" = "nat-eip-${count.index}"
-  }
 }
 
 resource "aws_nat_gateway" "nat_gateway" {
   count         = length(local.private_subnets)
   allocation_id = aws_eip.nat_eip[count.index].id
   subnet_id     = aws_subnet.public_subnet[count.index].id
-
-  tags = {
-    "Name" = "nat-gateway-${count.index}"
-  }
 }
 
 resource "aws_route_table" "public_route_table" {
@@ -72,10 +63,6 @@ resource "aws_route_table" "public_route_table" {
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.eks_igw.id
-  }
-
-  tags = {
-    "Name" = "public-route-table"
   }
 }
 
@@ -86,10 +73,6 @@ resource "aws_route_table" "private_route_table" {
   route {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat_gateway[count.index].id
-  }
-
-  tags = {
-    "Name" = "private-route-table"
   }
 }
 
@@ -102,7 +85,7 @@ resource "aws_route_table_association" "public_route_table_association" {
 resource "aws_route_table_association" "private_route_table_association" {
   count          = length(local.private_subnets)
   subnet_id      = aws_subnet.private_subnet[count.index].id
-  route_table_id = aws_route_table.public_route_table.id
+  route_table_id = aws_route_table.private_route_table[count.index].id
 }
 
 resource "aws_security_group" "eks_cluster_sg" {
@@ -120,10 +103,6 @@ resource "aws_security_group" "eks_cluster_sg" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "eks-cluster-sg"
   }
 }
 
@@ -153,6 +132,7 @@ resource "aws_security_group" "eks_worker_sg" {
   }
 
   tags = {
-    Name = "eks-worker-sg"
+    "kubernetes.io/role/internal-elb"             = "1"
+    "karpenter.sh/discovery"                      = local.cluster_name
   }
 }

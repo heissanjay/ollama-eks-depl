@@ -1,0 +1,9 @@
+nodeSelector:
+  nvidia.com/gpu: "true"
+
+tolerations:
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule
+  - operator: Exists
+    effect: NoSchedule
