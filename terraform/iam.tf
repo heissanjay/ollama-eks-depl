@@ -583,3 +583,18 @@ resource "helm_release" "karpenter" {
     value = aws_eks_cluster.eks_cluster.endpoint
   }
 }
+
+output "karpenter_role_arn" {
+  description = "The ARN of the IAM role for Karpenter"
+  value       = aws_iam_role.karpenter.arn
+}
+
+output "cluster_name" {
+  description = "The name of the EKS cluster"
+  value       = local.cluster_name
+}
+
+output "cluster_endpoint" {
+  description = "The endpoint of the EKS cluster's API server"
+  value       = aws_eks_cluster.eks_cluster.endpoint
+}

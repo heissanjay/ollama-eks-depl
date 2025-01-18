@@ -7,10 +7,10 @@ spec:
     consolidateAfter: 30s
     consolidationPolicy: WhenEmpty
     expireAfter: 720h0m0s
-
   limits:
     cpu: 1k
     memory: 1000Gi
+    nvidia.com/gpu: 10
   template:
     metadata:
       labels:
@@ -18,11 +18,10 @@ spec:
     spec:
       nodeClassRef:
         name: gpu
-
       requirements:
       - key: node.kubernetes.io/instance-type
         operator: In
-        values: ["g4dn.xlarge"]
+        values: ["g4dn.xlarge", "g4dn.2xlarge", "g4dn.4xlarge"]
       - key: karpenter.sh/capacity-type
         operator: In
         values: ["on-demand"]
@@ -32,7 +31,6 @@ spec:
       - key: kubernetes.io/arch
         operator: In
         values: ["amd64"]
-
       taints:
       - effect: NoSchedule
         key: nvidia.com/gpu

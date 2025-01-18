@@ -22,11 +22,17 @@ spec:
       containers:
       - name: ollama
         image: ollama/ollama:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 11434
         resources:
           limits:
-            cpu: "2000m"
+            nvidia.com/gpu: "1"
+            cpu: "2900m"
+            memory: "4Gi"
+          requests:
+            nvidia.com/gpu: "1"
+            cpu: "2900m"
             memory: "4Gi"
       - name: load-model
         image: curlimages/curl:latest
@@ -45,42 +51,42 @@ spec:
             cpu: "25m"
             memory: "50Mi"
 
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: openweb-ui
-  name: openweb-ui
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: openweb-ui
-  template:
-    metadata:
-      labels:
-        app: openweb-ui
-    spec:
-      volumes:
-      - name: webui-data
-        persistentVolumeClaim:
-          claimName: ollama-pvc
-      containers:
-      - name: openweb-ui
-        image: ghcr.io/open-webui/open-webui
-        ports:
-        - containerPort: 8080
-        env:
-        - name: OLLAMA_BASE_URL
-          value: "http://svc-ollama:11434"
-        volumeMounts:
-        - name: webui-data
-          mountPath: /app/backend/data
-        resources:
-          requests:
-            cpu: "1000m"
-            memory: "128Mi"
-          limits: 
-            cpu: "2000m"
-            memory: "1Gi"
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   labels:
+#     app: openweb-ui
+#   name: openweb-ui
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: openweb-ui
+#   template:
+#     metadata:
+#       labels:
+#         app: openweb-ui
+#     spec:
+#       volumes:
+#       - name: webui-data
+#         persistentVolumeClaim:
+#           claimName: ollama-pvc
+#       containers:
+#       - name: openweb-ui
+#         image: ghcr.io/open-webui/open-webui
+#         ports:
+#         - containerPort: 8080
+#         env:
+#         - name: OLLAMA_BASE_URL
+#           value: "http://svc-ollama:11434"
+#         volumeMounts:
+#         - name: webui-data
+#           mountPath: /app/backend/data
+#         resources:
+#           requests:
+#             cpu: "1000m"
+#             memory: "128Mi"
+#           limits: 
+#             cpu: "2000m"
+#             memory: "1Gi"

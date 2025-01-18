@@ -7,7 +7,7 @@ spec:
   blockDeviceMappings:
     - deviceName: /dev/xvda
       ebs:
-        volumeSize: 80Gi
+        volumeSize: 20Gi
         volumeType: gp3
         encrypted: true
   role: eks-worker-node-role  

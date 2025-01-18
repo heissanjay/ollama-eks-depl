@@ -190,3 +190,9 @@ resource "aws_eks_addon" "kube_proxy" {
   resolve_conflicts = "OVERWRITE"
 }
 
+resource "aws_eks_addon" "metrics_server" {
+  cluster_name      = aws_eks_cluster.eks_cluster.name
+  addon_name        = "metrics-server"
+  addon_version     = "v0.7.2-eksbuild.1"
+  resolve_conflicts = "OVERWRITE"
+}

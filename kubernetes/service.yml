@@ -9,18 +9,18 @@ spec:
     - protocol: TCP
       port: 11434
       targetPort: 11434
-  type: NodePort
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: openweb-ui-service
-spec:
-  selector:
-    app: openweb-ui
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
   type: LoadBalancer
+
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: openweb-ui-service
+# spec:
+#   selector:
+#     app: openweb-ui
+#   ports:
+#     - protocol: TCP
+#       port: 80
+#       targetPort: 8080
+#   type: LoadBalancer

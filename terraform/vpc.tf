@@ -24,7 +24,7 @@ resource "aws_subnet" "public_subnet" {
   map_public_ip_on_launch = true
 
   tags = {
-    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
+    "kubernetes.io/cluster/${local.cluster_name}" = "owned"
     "kubernetes.io/role/elb"                      = "1"
   }
 }
@@ -91,17 +91,24 @@ resource "aws_route_table_association" "private_route_table_association" {
 resource "aws_security_group" "eks_cluster_sg" {
   vpc_id = aws_vpc.eks_vpc.id
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 10250
+    to_port     = 10250
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.eks_vpc.cidr_block]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
@@ -124,6 +131,13 @@ resource "aws_security_group" "eks_worker_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 10250
+    to_port     = 10250
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.eks_vpc.cidr_block]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -132,7 +146,8 @@ resource "aws_security_group" "eks_worker_sg" {
   }
 
   tags = {
-    "kubernetes.io/role/internal-elb"             = "1"
-    "karpenter.sh/discovery"                      = local.cluster_name
+    "kubernetes.io/role/internal-elb" = "1"
+    "kubernetes.io/cluster/${local.cluster_name}" = "owned"
+    "karpenter.sh/discovery"          = local.cluster_name
   }
 }
