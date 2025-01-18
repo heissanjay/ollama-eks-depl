@@ -28,11 +28,11 @@ spec:
         resources:
           limits:
             nvidia.com/gpu: "1"
-            cpu: "2900m"
+            cpu: "3600m"
             memory: "4Gi"
           requests:
             nvidia.com/gpu: "1"
-            cpu: "2900m"
+            cpu: "3600m"
             memory: "4Gi"
       - name: load-model
         image: curlimages/curl:latest
